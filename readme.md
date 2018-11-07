@@ -1,6 +1,10 @@
 TOML
 ====
 
-Toml parsing for haxe!
+[TOML](https://github.com/toml-lang/toml) for haxe!
 
-This is still super early, but it sorta works!
+Notes
+-----
+
+This is still very much a work in progress, and is not
+yet compliant with any version of the TOML spec.

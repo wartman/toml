@@ -1,11 +1,8 @@
 package toml;
 
-import haxe.DynamicAccess;
-
 // todo: setting should use tokens so we have positions for errors!
 
-@:forward
-abstract TomlTable(DynamicAccess<Dynamic>) from DynamicAccess<Dynamic> to DynamicAccess<Dynamic> {
+abstract TomlTable({}) from {} to {} {
 
   public function new(data) this = data;
 

@@ -9,9 +9,11 @@ class Scanner {
   private var start:Int = 0;
   private var current:Int = 0;
   private var line:Int = 1;
+  private var reporter:Reporter;
 
-  public function new(source:String) {
+  public function new(source:String, ?reporter:Reporter) {
     this.source = source;
+    this.reporter = reporter == null ? new DefaultReporter() : reporter;
   }
 
   public function scan() {
@@ -44,7 +46,7 @@ class Scanner {
         } else if (isAlpha(c)) {
           identifier();
         } else {
-          Toml.error({ line: line }, 'Unexpected character: $c');
+          reporter.error({ line: line }, 'Unexpected character: $c');
         }
     }
   }
@@ -63,6 +65,10 @@ class Scanner {
     }
   }
 
+  // NOTE:
+  // This is far from compliant with the way TOML handles
+  // strings. Most importantly, single quote strings DO NOT
+  // support escaping at all. We'll need to handle them differently. 
   private function string(lastChar:String) {
     if (match(lastChar)) {
       if (match(lastChar)) {
@@ -73,19 +79,18 @@ class Scanner {
       return;
     } 
 
-    while (peek() != lastChar && !isAtEnd()) {
-      if (peek() == '\n') {
-        line++;
-      }
+    while (peek() != lastChar && !isAtEnd() && peek() != '\n') {
       if (peek() == '\\') {
+        // todo: actual escaping.
         advance();
         if (peek() == lastChar) advance();
       } else {
         advance();
       }
     }
-    if (isAtEnd()) {
-      Toml.error({ line: line }, 'Unterminated string.');
+
+    if (isAtEnd() || peek() == '\n') {
+      reporter.error({ line: line }, 'Unterminated string.');
       return;
     }
 
@@ -96,22 +101,27 @@ class Scanner {
     addToken(TokString, value);
   }
 
+  // TODO:
+  // We need to handle line-ending backslashes correctly.
   private function multilineString(lastChar:String) {
     while (!isAtEnd()) {
       if (match(lastChar) && match(lastChar) && match(lastChar)) {
         break;
       } else {
+        if (peek() == '\n') {
+          line++;
+        }
         advance();
       }
     }
 
     if (isAtEnd()) {
-      Toml.error({ line: line }, 'Unterminated string.');
+      reporter.error({ line: line }, 'Unterminated string.');
       return;
     }
 
     var value = source.substring(start + 3, current - 3);
-    addToken(TokString, value);
+    addToken(TokString, StringTools.ltrim(value));
   }
 
   private function newline() {
@@ -124,6 +134,13 @@ class Scanner {
     addToken(TokNewline);
   }
 
+  // TODO:
+  // Underscores are allowed here to help with visibility.
+  // They are simply ignored.
+  // To make this a bit more complicated, they are only valid 
+  // between two numbers (eg, `5_100_200`, and not `12_00_`)
+  //
+  // We also need to handle hexadecimal, octal and binary prefixes.
   private function number() {
     while(isDigit(peek())) advance();
     if (peek() == '.' && isDigit(peekAt(current + 1))) {

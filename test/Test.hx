@@ -1,10 +1,15 @@
-import haxe.Resource;
+import hex.unittest.notifier.*;
+import hex.unittest.runner.*;
+import toml.TestParser;
 
 class Test {
 
   public static function main() {
-    var hard = Toml.parse(Resource.getString('hard_example'));
-    trace(hard);
+    var emu = new ExMachinaUnitCore();
+    emu.addListener(new ConsoleNotifier(false));
+    emu.addListener(new ExitingNotifier());
+    emu.addTest(TestParser);
+    emu.run();
   }
 
 }

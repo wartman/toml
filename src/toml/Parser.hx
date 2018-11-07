@@ -7,9 +7,11 @@ class Parser {
   private var tokens:Array<Token>;
   private var table:TomlTable;
   private var current:Int = 0;
+  private var reporter:Reporter;
 
-  public function new(tokens:Array<Token>) {
+  public function new(tokens:Array<Token>, ?reporter:Reporter) {
     this.tokens = tokens;
+    this.reporter = reporter == null ? new DefaultReporter() : reporter;
   }
 
   public function parse():TomlTable {
@@ -20,7 +22,7 @@ class Parser {
   }
 
   private function parseStatement() {
-    if (match([ TokString, TokIdentifier ])) {
+    if (check(TokString) || check(TokIdentifier)) {
       parsePair();
     } else if (match([ TokLeftBracket ])) {
       if (match([ TokLeftBracket ])) {
@@ -34,10 +36,9 @@ class Parser {
   }
 
   private function parsePair() {
-    var path = parseKeyPath(previous().lexeme);
+    var path = parseKeyPath();
     consume(TokEqual, 'Expect an equals');
-    table.setPath(path, parseValue());    
-    // todo: parse inline tables!
+    table.setPath(path, parseValue());
     newline();
   }
 
@@ -89,12 +90,7 @@ class Parser {
       }
     }
 
-    if (init != null) {
-      path.push(init);
-    } else {
-      path.push(getStringOrIdent());
-    }
-
+    path.push(getStringOrIdent());
     while(match([ TokDot ])) {  
       path.push(getStringOrIdent());
     }
@@ -120,8 +116,7 @@ class Parser {
       consume(TokRightBracket, 'Expected a right bracket');  
       return values;
     }
-
-
+    // todo: parse inline tables!
     if (match([ TokIdentifier, TokString ])) return previous().literal;
     if (match([ TokNumber ])) return Std.int(previous().literal);
     if (match([ TokFalse ])) return false;
@@ -182,7 +177,7 @@ class Parser {
   }
 
   private function error(token:Token, message:String) {
-    Toml.error(token, message);
+    reporter.error(token, message);
     return new ParserError(message);
   }
 
