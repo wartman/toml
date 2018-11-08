@@ -9,4 +9,8 @@ class Toml {
     return new toml.Parser(tokens).parse();
   }
 
+  public static function generate(data:Dynamic):String {
+    return new toml.Generator(data).generate();
+  }
+
 }
