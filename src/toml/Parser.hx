@@ -131,6 +131,7 @@ class Parser {
   }
 
   private function newline() {
+    if (isAtEnd()) return;
     consume(TokNewline, 'Expected a newline');
     while(check(TokNewline) && !isAtEnd()) advance();
   }

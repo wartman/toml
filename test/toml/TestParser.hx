@@ -77,6 +77,11 @@ class TestParser {
     false.equals(true);
   }
 
+  @Test
+  public function testParsingThatEndsWithoutNewline() {
+    var pair:{} = Toml.parse('foo = "bar"');
+    pair.field('foo').equals('bar');
+  }
 
   private function run(input:String, reporter:Reporter) {
     var scanner = new Scanner(input, reporter);
