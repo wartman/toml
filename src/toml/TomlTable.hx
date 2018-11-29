@@ -52,7 +52,7 @@ abstract TomlTable({}) from {} to {} {
     for (i in 0...(path.length - 1)) {
       var part = path[i];
       table = table.get(part);
-      if (!Reflect.isObject(table)) {
+      if (table != null && !Reflect.isObject(table)) {
         throw 'Invalid key target';
       }
     }

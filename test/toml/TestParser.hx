@@ -83,6 +83,34 @@ class TestParser {
     pair.field('foo').equals('bar');
   }
 
+  @Test
+  public function testParsingArrayOfTables() {
+    var items:{} = cast Toml.parse('
+      [[foo]]
+      bar = "one"
+      [[foo]]
+      bar = "two"
+    ');
+    var foos:Array<Dynamic> = cast items.field('foo');
+    foos.length.equals(2);
+    foos[0].field('bar').equals('one');
+    foos[1].field('bar').equals('two');
+  }
+
+  @Test
+  public function testParsingArrayOfDottedTables() {
+    var items:{} = cast Toml.parse('
+      [[foo.bin]]
+      bar = "one"
+      [[foo.bin]]
+      bar = "two"
+    ');
+    var bins:Array<Dynamic> = cast items.field('foo').field('bin');
+    bins.length.equals(2);
+    bins[0].field('bar').equals('one');
+    bins[1].field('bar').equals('two');
+  }
+
   private function run(input:String, reporter:Reporter) {
     var scanner = new Scanner(input, reporter);
     var parser = new Parser(scanner.scan(), reporter);
