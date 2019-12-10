@@ -51,4 +51,41 @@ class TestGenerator {
     toml.equals('data = [1, 2, 3]\ndata2 = ["one", "two", "three"]');
   }
 
+  @test
+  public function testMultilineString() {
+    var toml = Toml.generate({
+      a: "
+        foo
+        ---
+        bar
+      "
+    });
+    toml.equals('a = """
+        foo
+        ---
+        bar
+      """');
+  }
+
+  @test
+  public function ensureGeneratedTomlIsParseable() {
+    var toml = Toml.generate({
+      foo: {
+        bar: {
+          a: 'a',
+          b: 'b',
+          bin: { c: 'foo
+          ---
+          bar' }
+        }
+      }
+    });
+    var data:{ foo: { bar: { a:String, b:String, bin:{ c:String } } } } = Toml.parse(toml);
+    data.foo.bar.a.equals('a');
+    data.foo.bar.b.equals('b');
+    data.foo.bar.bin.c.equals('foo
+          ---
+          bar');
+  }
+
 }

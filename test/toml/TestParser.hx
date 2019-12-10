@@ -50,6 +50,32 @@ class TestParser {
   }
 
   @test
+  public function dottedIdentifier() {
+    var data:{ foo: { bar:String } } = Toml.parse('
+      foo.bar = "bin"
+    ');
+    data.foo.bar.equals('bin');
+  }
+
+  @test
+  public function dottedIdentifierInTable() {
+    var data:{ foo: { bar:{  bin:String } } } = Toml.parse('
+      [foo]
+      bar.bin = "bin"
+    ');
+    data.foo.bar.bin.equals('bin');
+  }
+
+  @test
+  public function dottedIdentifierInDottedTable() {
+    var data:{ foo: { thing:{ bar:{  bin:String } } } } = Toml.parse('
+      [foo.thing]
+      bar.bin = "bin"
+    ');
+    data.foo.thing.bar.bin.equals('bin');
+  }
+
+  @test
   public function testCommentError() {
     var reporter = new ArrayReporter();
     try {
@@ -111,6 +137,20 @@ class TestParser {
     bins.length.equals(2);
     (bins[0].field('bar'):String).equals('one');
     (bins[1].field('bar'):String).equals('two');
+  }
+
+  @test
+  public function testParsingArrayOfDottedTablesWithDottedIdentifiers() {
+    var items:{} = cast Toml.parse('
+      [[foo.bin]]
+      bar.bin = "one"
+      [[foo.bin]]
+      bar.bin = "two"
+    ');
+    var bins:Array<Dynamic> = cast items.field('foo').field('bin');
+    bins.length.equals(2);
+    (bins[0].field('bar').field('bin'):String).equals('one');
+    (bins[1].field('bar').field('bin'):String).equals('two');
   }
 
   private function run(input:String, reporter:Reporter) {

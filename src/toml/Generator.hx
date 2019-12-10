@@ -48,7 +48,11 @@ class Generator {
   }
 
   private function genValue(value:Dynamic):String {
-    if (Std.is(value, String)) return '"$value"';
+    // todo: need to handle escaping
+    if (Std.is(value, String)) {
+      if ((value:String).indexOf('\n') > 0) return '"""${value}"""';
+      return '"$value"';
+    }
     if (Std.is(value, Array)) return genInlineArray(cast value);
     // todo: handle inline objects
     return value;

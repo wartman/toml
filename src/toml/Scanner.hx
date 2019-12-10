@@ -104,8 +104,10 @@ class Scanner {
   // TODO:
   // We need to handle line-ending backslashes correctly.
   private function multilineString(lastChar:String) {
+    var isClosed = false;
     while (!isAtEnd()) {
       if (match(lastChar) && match(lastChar) && match(lastChar)) {
+        isClosed = true;
         break;
       } else {
         if (peek() == '\n') {
@@ -115,7 +117,7 @@ class Scanner {
       }
     }
 
-    if (isAtEnd()) {
+    if (!isClosed) {
       reporter.error({ line: line }, 'Unterminated string.');
       return;
     }
