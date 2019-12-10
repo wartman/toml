@@ -3,14 +3,16 @@ package toml;
 import haxe.Resource;
 
 using Reflect;
-using hex.unittest.assertion.Assert;
+using medic.Assert;
 
 class TestParser {
 
-  @Test
+  public function new() {}
+
+  @test
   public function testParsesHardExample() {
     var hard:{} = Toml.parse(Resource.getString('hard_example'));
-    hard.field('the').field('test_string').equals("You'll hate me after this - #");
+    (hard.field('the').field('test_string'):String).equals("You'll hate me after this - #");
   
     var testArray:Array<String> = hard.field('the').field('hard').field('test_array');
     testArray.length.equals(2);
@@ -18,13 +20,13 @@ class TestParser {
     testArray[1].equals(' # ');
   
     var bit:{} = hard.field('the').field('hard').field('bit#');
-    bit.field('what?').equals("You don't think some user won't do that?");
+    (bit.field('what?'):String).equals("You don't think some user won't do that?");
     var testArray2:Array<String> = bit.field('multi_line_array');
     testArray2.length.equals(1);
     testArray2[0].equals(']');
   }
 
-  @Test
+  @test
   public function testMultilineString() {
     var data:{ foo:String } = Toml.parse('
       foo = """
@@ -47,7 +49,7 @@ class TestParser {
       ');
   }
 
-  @Test
+  @test
   public function testCommentError() {
     var reporter = new ArrayReporter();
     try {
@@ -60,7 +62,7 @@ class TestParser {
     false.equals(true);
   }
 
-  @Test
+  @test
   public function testIncorrectArray() {
     var reporter = new ArrayReporter();
     try {
@@ -77,13 +79,13 @@ class TestParser {
     false.equals(true);
   }
 
-  @Test
+  @test
   public function testParsingThatEndsWithoutNewline() {
     var pair:{} = Toml.parse('foo = "bar"');
-    pair.field('foo').equals('bar');
+    (pair.field('foo'):String).equals('bar');
   }
 
-  @Test
+  @test
   public function testParsingArrayOfTables() {
     var items:{} = cast Toml.parse('
       [[foo]]
@@ -93,11 +95,11 @@ class TestParser {
     ');
     var foos:Array<Dynamic> = cast items.field('foo');
     foos.length.equals(2);
-    foos[0].field('bar').equals('one');
-    foos[1].field('bar').equals('two');
+    (foos[0].field('bar'):String).equals('one');
+    (foos[1].field('bar'):String).equals('two');
   }
 
-  @Test
+  @test
   public function testParsingArrayOfDottedTables() {
     var items:{} = cast Toml.parse('
       [[foo.bin]]
@@ -107,8 +109,8 @@ class TestParser {
     ');
     var bins:Array<Dynamic> = cast items.field('foo').field('bin');
     bins.length.equals(2);
-    bins[0].field('bar').equals('one');
-    bins[1].field('bar').equals('two');
+    (bins[0].field('bar'):String).equals('one');
+    (bins[1].field('bar'):String).equals('two');
   }
 
   private function run(input:String, reporter:Reporter) {

@@ -1,16 +1,18 @@
 package toml;
 
-using hex.unittest.assertion.Assert;
+using medic.Assert;
 
 class TestGenerator {
+  
+  public function new() {}
 
-  @Test
+  @test
   public function testSimpleGeneration() {
     var toml = Toml.generate({ a:'a', b:'b' });
     toml.equals('a = "a"\nb = "b"');
   }
 
-  @Test
+  @test
   public function testObjects() {
     var toml = Toml.generate({
       foo: {
@@ -25,7 +27,7 @@ class TestGenerator {
     toml.equals('[foo]\na = "a"\nb = "b"\n[bar]\na = "a"\nb = "b"');
   }
 
-  @Test
+  @test
   public function testNestedObjects() {
     var toml = Toml.generate({
       foo: {
@@ -40,7 +42,7 @@ class TestGenerator {
     toml.equals('[foo]\na = "a"\n[foo.bar]\na = "a"\nb = "b"\n[foo.bar.bin]\nc = "c"');
   }
 
-  @Test
+  @test
   public function inlineArrays() {
     var toml = Toml.generate({
       data: [ 1, 2, 3 ],

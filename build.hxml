@@ -1,7 +1,7 @@
 -cp src
 -cp test
 
--lib hexunit
+-lib medic
 
 -resource test/examples/hard_example.toml@hard_example
 
