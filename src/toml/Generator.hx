@@ -5,23 +5,20 @@ using Reflect;
 // Todo: catch errors and invalid values, be more robust with string generation.
 class Generator {
 
-  private var reporter:Reporter;
-  private var data:Dynamic;
+  var data:Dynamic;
 
-  public function new(data:Dynamic, ?reporter:Reporter) {
+  public function new(data:Dynamic) {
     this.data = data;
-    this.reporter = reporter == null ? new DefaultReporter() : reporter;
   }
 
   public function generate():String {
     if (!data.isObject()) {
-      reporter.error({ line: 0 }, 'Only objects may be generated');
-      return '';
+      throw new TomlError({ line: 0 }, 'Only objects may be generated');
     }
     return genObject(null, data);
   }
 
-  private function genObject(?name:String, obj:Dynamic):String {
+  function genObject(?name:String, obj:Dynamic):String {
     var body:Array<String> = [];
     var objects:Array<String> = [];
      
@@ -43,11 +40,11 @@ class Generator {
     return body.join('\n');
   }
 
-  private function genStatement(key:String, value:Dynamic):String {
+  function genStatement(key:String, value:Dynamic):String {
     return '$key = ${genValue(value)}';
   }
 
-  private function genValue(value:Dynamic):String {
+  function genValue(value:Dynamic):String {
     // todo: need to handle escaping
     if (Std.is(value, String)) {
       if ((value:String).indexOf('\n') > 0) return '"""${value}"""';
@@ -58,7 +55,7 @@ class Generator {
     return value;
   }
 
-  private function genInlineArray(values:Array<Dynamic>):String {
+  function genInlineArray(values:Array<Dynamic>):String {
     return '[' + values.map(genValue).join(', ') + ']';
   }
 

@@ -77,12 +77,10 @@ class TestParser implements TestCase {
 
   @:test
   public function testCommentError() {
-    var reporter = new ArrayReporter();
     try {
-      run('[error] forgot to comment', reporter);
-    } catch(e:Parser.ParserError) {
-      reporter.errors.length.equals(1);
-      reporter.errors[0].equals("[line 1] Error at 'forgot': Expected a newline");
+      run('[error] forgot to comment');
+    } catch(e:TomlError) {
+      e.toString().equals("[line 1] Error at 'forgot': Expected a newline");
       return;
     }
     false.equals(true);
@@ -90,16 +88,15 @@ class TestParser implements TestCase {
 
   @:test
   public function testIncorrectArray() {
-    var reporter = new ArrayReporter();
     try {
       run('
         array = [
           "This should,
           not work" 
           ]
-      ', reporter);
-    } catch(e:Parser.ParserError) {
-      reporter.errors[0].equals('[line 3] Error: Unterminated string.');
+      ');
+    } catch(e:TomlError) {
+      e.toString().equals('[line 3] Error: Unterminated string.');
       return;
     }
     false.equals(true);
@@ -161,9 +158,30 @@ class TestParser implements TestCase {
     items.date.toString().equals('2020-06-24 00:00:00');
   }
 
-  private function run(input:String, reporter:Reporter) {
-    var scanner = new Scanner(input, reporter);
-    var parser = new Parser(scanner.scan(), reporter);
+  @:test
+  public function parseInlineTable() {
+    var items:{ foo: { a:String, b:String } } = cast Toml.parse("
+      foo = { a = 'foo', b = 'bar' }
+    ");
+    items.foo.a.equals('foo');
+    items.foo.b.equals('bar');
+  }
+
+  @:test
+  public function inlineTableNoNewline() {
+    try {
+      Toml.parse("
+        foo = { a = 'foo', 
+        b = 'bar' }
+      ");
+    } catch (e:TomlError) {
+      e.toString().equals("[line 3] Error at '\n': Newlines are not allowed in inine tables");
+    } 
+  }
+
+  private function run(input:String) {
+    var scanner = new Scanner(input);
+    var parser = new Parser(scanner.scan());
     return parser.parse();
   }
 

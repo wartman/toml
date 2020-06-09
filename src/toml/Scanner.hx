@@ -4,16 +4,14 @@ import toml.TokenType;
 
 class Scanner {
 
-  private var source:String;
-  private var tokens:Array<Token> = [];
-  private var start:Int = 0;
-  private var current:Int = 0;
-  private var line:Int = 1;
-  private var reporter:Reporter;
+  final source:String;
+  var tokens:Array<Token> = [];
+  var start:Int = 0;
+  var current:Int = 0;
+  var line:Int = 1;
 
-  public function new(source:String, ?reporter:Reporter) {
+  public function new(source:String) {
     this.source = source;
-    this.reporter = reporter == null ? new DefaultReporter() : reporter;
   }
 
   public function scan() {
@@ -25,7 +23,7 @@ class Scanner {
     return tokens;
   }
 
-  private function scanToken() {
+  function scanToken() {
     var c = advance();
     switch (c) {
       case '[': addToken(TokLeftBracket);
@@ -48,16 +46,16 @@ class Scanner {
         } else if (isAlpha(c)) {
           identifier();
         } else {
-          reporter.error({ line: line }, 'Unexpected character: $c');
+          throw new TomlError({ line: line }, 'Unexpected character: $c');
         }
     }
   }
 
-  private function comment() {
+  function comment() {
     while(peek() != '\n') advance();
   }
 
-  private function identifier() {
+  function identifier() {
     while (isAlphaNumeric(peek())) advance();
     var text = source.substring(start, current);
     switch (text) {
@@ -71,7 +69,7 @@ class Scanner {
   // This is far from compliant with the way TOML handles
   // strings. Most importantly, single quote strings DO NOT
   // support escaping at all. We'll need to handle them differently. 
-  private function string(lastChar:String) {
+  function string(lastChar:String) {
     if (match(lastChar)) {
       if (match(lastChar)) {
         multilineString(lastChar);
@@ -92,7 +90,7 @@ class Scanner {
     }
 
     if (isAtEnd() || peek() == '\n') {
-      reporter.error({ line: line }, 'Unterminated string.');
+      throw new TomlError({ line: line }, 'Unterminated string.');
       return;
     }
 
@@ -105,7 +103,7 @@ class Scanner {
 
   // TODO:
   // We need to handle line-ending backslashes correctly.
-  private function multilineString(lastChar:String) {
+  function multilineString(lastChar:String) {
     var isClosed = false;
     while (!isAtEnd()) {
       if (match(lastChar) && match(lastChar) && match(lastChar)) {
@@ -120,7 +118,7 @@ class Scanner {
     }
 
     if (!isClosed) {
-      reporter.error({ line: line }, 'Unterminated string.');
+      throw new TomlError({ line: line }, 'Unterminated string.');
       return;
     }
 
@@ -128,7 +126,7 @@ class Scanner {
     addToken(TokString, StringTools.ltrim(value));
   }
 
-  private function newline() {
+  function newline() {
     line++;
     // todo: may need to handle windows newline too :P
     while (peek() == '\n' && !isAtEnd()) {
@@ -145,7 +143,7 @@ class Scanner {
   // between two numbers (eg, `5_100_200`, and not `12_00_`)
   //
   // We also need to handle hexadecimal, octal and binary prefixes.
-  private function number() {
+  function number() {
     while(isDigit(peek())) advance();
     if (peek() == '.' && isDigit(peekAt(current + 1))) {
       advance();
@@ -154,25 +152,25 @@ class Scanner {
     addToken(TokNumber, Std.parseFloat(source.substring(start, current)));
   }
   
-  private function isAtEnd():Bool {
+  function isAtEnd():Bool {
     return current >= source.length;
   }
 
-  private function isDigit(c:String):Bool {
+  function isDigit(c:String):Bool {
     return c >= '0' && c <= '9';
   }
 
-  private function isAlpha(c:String):Bool {
+  function isAlpha(c:String):Bool {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
             c == '_';
   }
 
-  private function isAlphaNumeric(c:String) {
+  function isAlphaNumeric(c:String) {
     return isAlpha(c) || isDigit(c);
   }
 
-  private function match(expected:String):Bool {
+  function match(expected:String):Bool {
     if (isAtEnd()) {
       return false;
     }
@@ -183,26 +181,26 @@ class Scanner {
     return true;
   }
 
-  private function peek():String {
+  function peek():String {
     if (isAtEnd()) {
       return '';
     }
     return source.charAt(current);
   }
 
-  private function peekAt(i) {
+  function peekAt(i) {
     if (i >= source.length) {
       return '';
     }
     return source.charAt(i);
   }
 
-  private function advance() {
+  function advance() {
     current++;
     return source.charAt(current - 1);
   }
 
-  private function addToken(type:TokenType, ?literal:Dynamic) {
+  function addToken(type:TokenType, ?literal:Dynamic) {
     var text = source.substring(start, current);
     tokens.push(new Token(type, text, literal, line));
   }

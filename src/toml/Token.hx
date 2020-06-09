@@ -1,21 +1,26 @@
 package toml;
 
-class Token {
+typedef TokenDef = {
+  @:optional public var type:TokenType;
+  @:optional public var lexeme:String;
+  @:optional public var literal:Dynamic;
+  @:optional public var line:Int;
+}
 
-  public var type:TokenType;
-  public var lexeme:String;
-  public var literal:Dynamic;
-  public var line:Int;
+@:forward
+abstract Token(TokenDef) from TokenDef to TokenDef {
 
-  public function new(type:TokenType, lexeme:String, literal:Dynamic, line:Int) {
-    this.type = type;
-    this.lexeme = lexeme;
-    this.literal = literal;
-    this.line = line;
+  inline public function new(type:TokenType, lexeme:String, literal:Dynamic, line:Int) {
+    this = {
+      type: type,
+      lexeme: lexeme,
+      literal: literal,
+      line: line
+    };
   }
 
-  public function toString():String {
-    return '${Std.string(type)} ${this.lexeme} ${Std.string(this.literal)}';
+  inline public function toString():String {
+    return '${Std.string(this.type)} ${this.lexeme} ${Std.string(this.literal)}';
   }
 
 }
