@@ -10,6 +10,8 @@ enum TokenType {
   TokEqual;
   TokDot;
   TokComma;
+  TokDash;
+  TokUnderline;
   TokIdentifier;
   TokNumber;
   TokString;

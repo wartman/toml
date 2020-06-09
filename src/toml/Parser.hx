@@ -116,13 +116,37 @@ class Parser {
       consume(TokRightBracket, 'Expected a right bracket');  
       return values;
     }
+
     // todo: parse inline tables!
     if (match([ TokIdentifier, TokString ])) return previous().literal;
-    if (match([ TokNumber ])) return Std.int(previous().literal);
+    
+    if (match([ TokNumber ])) {
+      var number = previous();
+      if (match([ TokDash ])) {
+        // todo: The rest of this spec: https://github.com/toml-lang/toml#user-content-offset-date-time
+        //       Currently this only covers `Local Date`
+
+        var month = consume(TokNumber, 'Expected a month');
+        consume(TokDash, 'Expected a dash after the month');
+        var day = consume(TokNumber, 'Expected a day');
+
+        function formatNumber(num:Int) {
+          var str = Std.string(num);
+          if (str.length == 1) return '0${str}';
+          return str;
+        }
+
+        return Date.fromString('${number.literal}-${formatNumber(month.literal)}-${formatNumber(day.literal)}');
+      }
+      return Std.int(number.literal);
+    }
+
     if (match([ TokFalse ])) return false;
+
     if (match([ TokTrue ])) return true;
-    // todo: datetime
+
     error(advance(), 'Expected a number, integer, string or datetime');
+    
     return null;
   }
 

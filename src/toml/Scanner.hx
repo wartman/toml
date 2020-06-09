@@ -34,6 +34,8 @@ class Scanner {
       case '}': addToken(TokRightBrace);
       case '=': addToken(TokEqual);
       case ',': addToken(TokComma);
+      case '-': addToken(TokDash);
+      case '_': addToken(TokUnderline);
       case '#': comment();
       case '.': addToken(TokDot);
       case '"': string('"');

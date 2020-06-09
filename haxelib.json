@@ -1,0 +1,12 @@
+{
+  "name": "toml",
+  "tags": ["toml", "parser"],
+  "classPath": "src",
+  "contributors": [ "wartman" ],
+  "description": "A haxe implementation of TOML",
+  "version": "0.0.1",
+  "releasenote": "Added some of date parsing",
+  "url": "https://github.com/wartman/toml",
+  "license": "MIT",
+  "dependencies": {}
+}

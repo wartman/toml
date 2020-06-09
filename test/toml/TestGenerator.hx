@@ -1,18 +1,18 @@
 package toml;
 
-using medic.Assert;
+using Medic;
 
-class TestGenerator {
+class TestGenerator implements TestCase {
   
   public function new() {}
 
-  @test
+  @:test
   public function testSimpleGeneration() {
     var toml = Toml.generate({ a:'a', b:'b' });
     toml.equals('a = "a"\nb = "b"');
   }
 
-  @test
+  @:test
   public function testObjects() {
     var toml = Toml.generate({
       foo: {
@@ -27,7 +27,7 @@ class TestGenerator {
     toml.equals('[foo]\na = "a"\nb = "b"\n[bar]\na = "a"\nb = "b"');
   }
 
-  @test
+  @:test
   public function testNestedObjects() {
     var toml = Toml.generate({
       foo: {
@@ -42,7 +42,7 @@ class TestGenerator {
     toml.equals('[foo]\na = "a"\n[foo.bar]\na = "a"\nb = "b"\n[foo.bar.bin]\nc = "c"');
   }
 
-  @test
+  @:test
   public function inlineArrays() {
     var toml = Toml.generate({
       data: [ 1, 2, 3 ],
@@ -51,7 +51,7 @@ class TestGenerator {
     toml.equals('data = [1, 2, 3]\ndata2 = ["one", "two", "three"]');
   }
 
-  @test
+  @:test
   public function testMultilineString() {
     var toml = Toml.generate({
       a: "
@@ -67,7 +67,7 @@ class TestGenerator {
       """');
   }
 
-  @test
+  @:test
   public function ensureGeneratedTomlIsParseable() {
     var toml = Toml.generate({
       foo: {
