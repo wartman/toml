@@ -81,9 +81,7 @@ class TestParser implements TestCase {
       run('[error] forgot to comment');
     } catch(e:TomlError) {
       e.toString().equals("[line 1] Error at 'forgot': Expected a newline");
-      return;
     }
-    false.equals(true);
   }
 
   @:test
@@ -97,9 +95,7 @@ class TestParser implements TestCase {
       ');
     } catch(e:TomlError) {
       e.toString().equals('[line 3] Error: Unterminated string.');
-      return;
     }
-    false.equals(true);
   }
 
   @:test
@@ -124,16 +120,37 @@ class TestParser implements TestCase {
 
   @:test
   public function testParsingArrayOfDottedTables() {
-    var items:{} = cast Toml.parse('
+    var items:{ foo:{ bin:Array<{ bar:String }> } } = cast Toml.parse('
       [[foo.bin]]
       bar = "one"
       [[foo.bin]]
       bar = "two"
     ');
-    var bins:Array<Dynamic> = cast items.field('foo').field('bin');
+    var bins = items.foo.bin;
     bins.length.equals(2);
-    (bins[0].field('bar'):String).equals('one');
-    (bins[1].field('bar'):String).equals('two');
+    bins[0].bar.equals('one');
+    bins[1].bar.equals('two');
+  }
+
+  @:test
+  public function testParsingNestedArrayOfDottedTables() {
+    var items:{ foo:Array<{ title:String, bin:Array<{ bar:String }> }> } = cast Toml.parse('
+      [[foo]]
+        title = "first"
+        [[foo.bin]]
+          bar = "one"
+      
+      [[foo]]
+        title = "second"
+        [[foo.bin]]
+          bar = "two"
+    ');
+    items.foo.length.equals(2);
+    items.foo[0].title.equals('first');
+    items.foo[0].bin.length.equals(1);
+    items.foo[0].bin[0].bar.equals('one');
+    items.foo[1].bin.length.equals(1);
+    items.foo[1].bin[0].bar.equals('two');
   }
 
   @:test
@@ -157,6 +174,8 @@ class TestParser implements TestCase {
     ');
     items.date.toString().equals('2020-06-24 00:00:00');
   }
+
+  // @todo: Test other dates.
 
   @:test
   public function parseInlineTable() {

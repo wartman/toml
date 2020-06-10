@@ -59,6 +59,7 @@ class Parser {
 
   function parseArrayOfTables() {
     var path = parseKeyPath();
+
     consume(TokRightBracket, 'Expected a right bracket');
     consume(TokRightBracket, 'Expected a right bracket');
     newline();
