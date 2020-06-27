@@ -7,32 +7,6 @@ abstract TomlTable({}) from {} to {} {
 
   public function new(data) this = data;
 
-  function set(key:String, value:Dynamic) {
-    if (Reflect.hasField(this, key)) {
-      throw '[$key] cannot be redefined';
-    }
-    Reflect.setField(this, key, value);
-  }
-
-  function setPath(path:Array<String>, value:Dynamic) {
-    var key = path[ path.length - 1 ];
-    var table:TomlTable = this;
-    for (i in 0...(path.length - 1)) {
-      var part = path[i];
-      if (table.exists(part)) {
-        table = locate(part, table);
-        if (!Reflect.isObject(table)) {
-          throw 'Invalid key target';
-        }
-      } else {
-        var prev = table;
-        table = new TomlTable({});
-        prev.set(part, table);
-      }
-    }
-    table.set(key, value);
-  }
-
   function addToArray(path:Array<String>, value:TomlTable) {
     var arr = getPath(path);
     if (arr == null) {
@@ -47,13 +21,32 @@ abstract TomlTable({}) from {} to {} {
     }
   }
 
+  function setPath(path:Array<String>, value:Dynamic) {
+    var key = path[ path.length - 1 ];
+    var table:TomlTable = this;
+    for (i in 0...(path.length - 1)) {
+      var part = path[i];
+      if (table.exists(part)) {
+        table = locateClosestTable(part, table);
+        if (!Reflect.isObject(table)) {
+          throw 'Invalid key target';
+        }
+      } else {
+        var prev = table;
+        table = new TomlTable({});
+        prev.set(part, table);
+      }
+    }
+    table.set(key, value);
+  }
+
   function getPath(path:Array<String>) {
     var key:String = path[ path.length - 1 ];
     var table:TomlTable = this;
 
     for (i in 0...(path.length - 1)) {
       var part = path[i];
-      table = locate(part, table);
+      table = locateClosestTable(part, table);
       if (table != null && !Reflect.isObject(table)) {
         throw 'Invalid key target';
       }
@@ -63,13 +56,20 @@ abstract TomlTable({}) from {} to {} {
   }
 
   // Returns a table or the top table in an array.
-  function locate(part:String, table:TomlTable):TomlTable {
+  function locateClosestTable(part:String, table:TomlTable):TomlTable {
     var item = table.get(part);
     if (Std.is(item, Array)) {
       var items:Array<TomlTable> = cast item;
       return items[items.length - 1];
     }
     return item;
+  }
+
+  function set(key:String, value:Dynamic) {
+    if (Reflect.hasField(this, key)) {
+      throw '[$key] cannot be redefined';
+    }
+    Reflect.setField(this, key, value);
   }
 
   function get(key:String) {

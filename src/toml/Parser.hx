@@ -114,8 +114,14 @@ class Parser {
 
   function parseInlineArray() {
     ignoreNewlines();
+
+    if (match([ TokRightBracket ])) {
+      return [];
+    }
+
     var values = [ parseValue() ];
     ignoreNewlines();
+
     while (match([ TokComma ])) {
       ignoreNewlines();
       if (match([ TokRightBracket ])) {
@@ -126,6 +132,7 @@ class Parser {
       ignoreNewlines();
     }
     ignoreNewlines();
+    
     consume(TokRightBracket, 'Expected a right bracket');  
     return values;
   }

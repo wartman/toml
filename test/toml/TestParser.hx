@@ -85,6 +85,26 @@ class TestParser implements TestCase {
   }
 
   @:test
+  public function inlineArray() {
+    var data:{ foos:Array<String> } = Toml.parse('
+      foos = [ "a", "b",
+        "c"
+      ]
+    ');
+    data.foos.length.equals(3);
+    data.foos.join(',').equals('a,b,c');
+  }
+
+  @:test
+  public function inlineEmptyArray() {
+    var data:{ foos:Array<String> } = Toml.parse('
+      foos = []
+    ');
+    data.foos.length.equals(0);
+    data.foos.join(',').equals('');
+  }
+
+  @:test
   public function testIncorrectArray() {
     try {
       run('
