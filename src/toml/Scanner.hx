@@ -56,7 +56,7 @@ class Scanner {
   }
 
   function identifier() {
-    while (isAlphaNumeric(peek())) advance();
+    while (isAlphaNumeric(peek()) || peek() == '-' || peek() == '_') advance();
     var text = source.substring(start, current);
     switch (text) {
       case 'true': addToken(TokTrue);

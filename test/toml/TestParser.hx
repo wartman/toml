@@ -58,6 +58,22 @@ class TestParser implements TestCase {
   }
 
   @:test
+  public function dashedIdentifier() {
+    var data:{} = Toml.parse('
+      foo-bar = "bin"
+    ');
+    (data.field('foo-bar'):String).equals('bin');
+  }
+
+  @:test
+  public function underscoreIdentifier() {
+    var data:{ foo_bar:String } = Toml.parse('
+      foo_bar = "bin"
+    ');
+    data.foo_bar.equals('bin');
+  }
+
+  @:test
   public function dottedIdentifierInTable() {
     var data:{ foo: { bar:{  bin:String } } } = Toml.parse('
       [foo]

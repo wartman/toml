@@ -23,8 +23,8 @@ class Parser {
     if (check(TokString) || check(TokIdentifier)) {
       parsePair();
       newline();
-    } else if (match([ TokLeftBracket ])) {
-      if (match([ TokLeftBracket ])) {
+    } else if (match(TokLeftBracket)) {
+      if (match(TokLeftBracket)) {
         parseArrayOfTables();
       } else {
         parseTable();
@@ -90,7 +90,7 @@ class Parser {
     }
 
     path.push(getStringOrIdent());
-    while(match([ TokDot ])) {  
+    while(match(TokDot)) {  
       path.push(getStringOrIdent());
     }
 
@@ -101,11 +101,11 @@ class Parser {
     var prevTable = table;
     table = new TomlTable({});
     do {
-      if (match([ TokNewline ])) {
+      if (match(TokNewline)) {
         throw error(previous(), 'Newlines are not allowed in inine tables');
       } 
       parsePair();
-    } while (!isAtEnd() && match([ TokComma ]));
+    } while (!isAtEnd() && match(TokComma));
     consume(TokRightBrace, 'Expected an ending }');
     var value = table;
     table = prevTable;
@@ -115,16 +115,16 @@ class Parser {
   function parseInlineArray() {
     ignoreNewlines();
 
-    if (match([ TokRightBracket ])) {
+    if (match(TokRightBracket)) {
       return [];
     }
 
     var values = [ parseValue() ];
     ignoreNewlines();
 
-    while (match([ TokComma ])) {
+    while (match(TokComma)) {
       ignoreNewlines();
-      if (match([ TokRightBracket ])) {
+      if (match(TokRightBracket)) {
         // allow trailing commas
         return values;
       }
@@ -155,16 +155,16 @@ class Parser {
   }
 
   function parseValue():Dynamic {
-    if (match([ TokLeftBracket ])) return parseInlineArray();
-    if (match([ TokLeftBrace ])) return parseInlineTable();
-    if (match([ TokIdentifier, TokString ])) return previous().literal;
-    if (match([ TokNumber ])) {
+    if (match(TokLeftBracket)) return parseInlineArray();
+    if (match(TokLeftBrace)) return parseInlineTable();
+    if (match(TokIdentifier, TokString)) return previous().literal;
+    if (match(TokNumber)) {
       var number = previous();
-      if (match([ TokDash ])) return parseDate(number);
+      if (match(TokDash)) return parseDate(number);
       return Std.int(number.literal);
     }
-    if (match([ TokFalse ])) return false;
-    if (match([ TokTrue ])) return true;
+    if (match(TokFalse)) return false;
+    if (match(TokTrue)) return true;
     throw error(advance(), 'Expected a number, integer, string or datetime');
   }
 
@@ -182,12 +182,10 @@ class Parser {
     while (!check(TokNewline) && !isAtEnd()) advance();
   }
 
-  function match(types:Array<TokenType>):Bool {
-    for (type in types) {
-      if (check(type)) {
-        advance();
-        return true;
-      }
+  function match(...types:TokenType):Bool {
+    if (check(...types)) {
+      advance();
+      return true;
     }
     return false;
   }
@@ -197,9 +195,12 @@ class Parser {
     throw error(peek(), message);
   } 
 
-  function check(type:TokenType):Bool {
+  function check(...types:TokenType):Bool {
     if (isAtEnd()) return false;
-    return peek().type.equals(type);
+    for (type in types) {
+      if (peek().type.equals(type)) return true;
+    }
+    return false;
   }
 
   function advance():Token {
